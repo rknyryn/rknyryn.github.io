@@ -1,0 +1,31 @@
+{
+    "nav": {
+        "about": "About",
+        "projects": "Projects",
+        "blog": "Blog",
+        "contact": "Contact"
+    },
+    "footer": {
+        "all_rights": "All rights reserved."
+    },
+    "home": {
+        "see_projects": "See Projects",
+        "contact": "Contact",
+        "featured_projects": "Featured Projects"
+    },
+    "contact": {
+        "email_me": "Email me",
+        "prompt": "Let's get in touch — my email is below."
+    },
+    "profile": {
+        "role": ".Net Core | Software Engineer",
+        "tagline": "I build minimal, high-performance web experiences.",
+        "bio": "I'm a frontend engineer focused on clean interfaces and good UX. I enjoy shipping polished, accessible web apps."
+    },
+    "about": {
+        "skills_title": "Skills"
+    },
+    "project": {
+        "view": "View project →"
+    }
+}

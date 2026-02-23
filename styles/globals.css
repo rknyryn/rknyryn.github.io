@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Basic focus style */
+a:focus,
+button:focus,
+input:focus {
+  outline: 2px solid rgba(0,0,0,0.06);
+  outline-offset: 2px;
+}
+
+.prose p {
+  color: var(--foreground);
+}
+
+/* Typography helpers (small, unobtrusive defaults) */
+h1 { font-size: 1.75rem; line-height: 1.1; }
+h2 { font-size: 1.25rem; }
+
+@media (min-width: 640px) {
+  h1 { font-size: 2.25rem; }
+  h2 { font-size: 1.5rem; }
+}
+
+/* Card polish */
+.card {
+  background: var(--background);
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 0.5rem;
+  transition: box-shadow .15s ease;
+}
+/* Removed hover transform to eliminate hover interactions */
+
+/* Utility: center container spacing consistent */
+.container-max { max-width: 64rem; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }

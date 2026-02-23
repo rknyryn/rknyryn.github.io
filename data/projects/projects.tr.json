@@ -1,0 +1,30 @@
+[
+  {
+    "id": "p1",
+    "title": "Minimal Notlar",
+    "description": "Markdown desteğiyle minimal not alma uygulaması.",
+    "tags": ["Next.js", "TypeScript"],
+    "link": "https://example.com"
+  },
+  {
+    "id": "p2",
+    "title": "Portfolyo Şablonu",
+    "description": "Tasarımcılar ve geliştiriciler için temiz, duyarlı portfolyo şablonu.",
+    "tags": ["Tasarım", "CSS"],
+    "link": "https://example.com"
+  },
+    {
+    "id": "p3",
+    "title": "Portfolyo Şablonu",
+    "description": "Tasarımcılar ve geliştiriciler için temiz, duyarlı portfolyo şablonu.",
+    "tags": ["Tasarım", "CSS"],
+    "link": "https://example.com"
+  },
+    {
+    "id": "p4",
+    "title": "Minimal Notlar",
+    "description": "Markdown desteğiyle minimal not alma uygulaması.",
+    "tags": ["Next.js", "TypeScript"],
+    "link": "https://example.com"
+  }
+]

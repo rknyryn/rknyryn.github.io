@@ -1,0 +1,31 @@
+{
+    "nav": {
+        "about": "Hakkında",
+        "projects": "Projeler",
+        "blog": "Blog",
+        "contact": "İletişim"
+    },
+    "footer": {
+        "all_rights": "Tüm hakları saklıdır."
+    },
+    "home": {
+        "see_projects": "Projeleri Gör",
+        "contact": "İletişim",
+        "featured_projects": "Öne Çıkan Projeler"
+    },
+    "contact": {
+        "email_me": "E-posta Gönder",
+        "prompt": "İletişime geçelim — e-posta adresim aşağıda."
+    },
+    "profile": {
+        "role": ".Net Core | Software Engineer",
+        "tagline": "Güvenilir backend ve frontend araçları geliştiriyorum.",
+        "bio": "Yazılım mühendisi; full-stack ve tooling projeleri üzerinde çalışıyorum."
+    },
+    "about": {
+        "skills_title": "Yetenekler"
+    },
+    "project": {
+        "view": "Projeyi Görüntüle →"
+    }
+}

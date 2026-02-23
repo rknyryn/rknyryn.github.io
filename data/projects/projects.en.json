@@ -1,0 +1,30 @@
+[
+  {
+    "id": "p1",
+    "title": "Minimal Notes",
+    "description": "A minimal note-taking app with markdown support.",
+    "tags": ["Next.js", "TypeScript"],
+    "link": "https://example.com"
+  },
+  {
+    "id": "p2",
+    "title": "Portfolio Template",
+    "description": "A clean, responsive portfolio template for designers and devs.",
+    "tags": ["Design", "CSS"],
+    "link": "https://example.com"
+  },
+  {
+    "id": "p3",
+    "title": "Portfolio Template",
+    "description": "A clean, responsive portfolio template for designers and devs.",
+    "tags": ["Design", "CSS"],
+    "link": "https://example.com"
+  },
+    {
+    "id": "p4",
+    "title": "Minimal Notes",
+    "description": "A minimal note-taking app with markdown support.",
+    "tags": ["Next.js", "TypeScript"],
+    "link": "https://example.com"
+  }
+]
