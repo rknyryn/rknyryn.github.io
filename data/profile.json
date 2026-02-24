@@ -5,7 +5,7 @@
 	"bio": "Software engineer working on full-stack and tooling projects.",
 	"email": "",
 	"location": "Istanbul, Turkey",
-	"skills": ["C#", "TypeScript", "Svelte", "Next.js"],
+	"skills": ["C#", "ASP.NET Core", "TypeScript", "Svelte", "Next.js"],
 	"socials": {
 		"github": "https://github.com/rknyryn",
 		"linkedin": "https://www.linkedin.com/in/rknyryn/"

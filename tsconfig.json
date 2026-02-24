@@ -28,7 +28,8 @@
       "@components/i18n/*": ["components/i18n/*"],
       "@data/*": ["data/*"],
       "@styles/*": ["styles/*"],
-      "@public/*": ["public/*"]
+      "@public/*": ["public/*"],
+      "@lib/*": ["lib/*"],
     }
   },
   "include": [
