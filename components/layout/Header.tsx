@@ -39,11 +39,11 @@ export default function Navbar() {
 	};
 
 	return (
-		<header className="w-full border-b border-solid border-black/[.06] bg-background">
+		<header className="sticky top-0 z-50 w-full border-b border-zinc-200/60 bg-white/80 backdrop-blur-lg dark:border-zinc-800/60 dark:bg-black/80">
 			<div className="mx-auto max-w-4xl px-6 py-4">
 				<div className="flex items-center justify-between">
 					{/* Logo */}
-					<Link href={routes.home} className="text-lg font-bold hover:opacity-70 transition-opacity">
+					<Link href={routes.home} className="text-lg font-bold tracking-tight text-zinc-900 transition-opacity hover:opacity-70 dark:text-zinc-100">
 						KY
 					</Link>
 
@@ -51,23 +51,13 @@ export default function Navbar() {
 					<nav className="hidden lg:block ml-auto mr-8">
 						<ul className="flex gap-8 text-sm">
 							<li>
-								<Link href={routes.about} className="hover:underline transition-all hover:opacity-70">
-									{t("nav.about")}
-								</Link>
-							</li>
-							<li>
-								<Link href={routes.projects} className="hover:underline transition-all hover:opacity-70">
+								<Link href={routes.projects} className="text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
 									{t("nav.projects")}
 								</Link>
 							</li>
 							<li>
-								<Link href={routes.blog} className="hover:underline transition-all hover:opacity-70">
+								<Link href={routes.blog} className="text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
 									{t("nav.blog")}
-								</Link>
-							</li>
-							<li>
-								<Link href={routes.contact} className="hover:underline transition-all hover:opacity-70">
-									{t("nav.contact")}
 								</Link>
 							</li>
 						</ul>
@@ -81,19 +71,19 @@ export default function Navbar() {
 					{/* Mobile Menu Button */}
 					<button
 						onClick={() => setIsOpen(!isOpen)}
-						className="lg:hidden p-2 hover:bg-black/5 rounded-lg transition-colors"
+						className="lg:hidden p-2 rounded-lg text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
 						aria-label="Toggle menu"
 					>
 						<svg
-							className={`w-6 h-6 transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}
+							className={`w-5 h-5 transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
 						>
 							{isOpen ? (
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
 							) : (
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
 							)}
 						</svg>
 					</button>
@@ -109,23 +99,14 @@ export default function Navbar() {
 						/>
 
 						{/* Dropdown Menu */}
-						<nav className="fixed left-0 right-0 top-[72px] w-full bg-background border-b border-black/[.06] z-50 lg:hidden">
+						<nav className="fixed left-0 right-0 top-[72px] w-full border-b border-zinc-200/60 bg-white z-50 lg:hidden dark:border-zinc-800/60 dark:bg-black">
 							<div className="mx-auto max-w-4xl px-6 py-4">
-								<ul className="flex flex-col gap-4">
-									<li>
-										<Link
-											href={routes.about}
-											onClick={handleLinkClick}
-											className="block py-2 hover:text-gray-600 transition-colors"
-										>
-											{t("nav.about")}
-										</Link>
-									</li>
+								<ul className="flex flex-col gap-1">
 									<li>
 										<Link
 											href={routes.projects}
 											onClick={handleLinkClick}
-											className="block py-2 hover:text-gray-600 transition-colors"
+											className="block rounded-lg px-3 py-2.5 text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
 										>
 											{t("nav.projects")}
 										</Link>
@@ -134,21 +115,12 @@ export default function Navbar() {
 										<Link
 											href={routes.blog}
 											onClick={handleLinkClick}
-											className="block py-2 hover:text-gray-600 transition-colors"
+											className="block rounded-lg px-3 py-2.5 text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
 										>
 											{t("nav.blog")}
 										</Link>
 									</li>
-									<li>
-										<Link
-											href={routes.contact}
-											onClick={handleLinkClick}
-											className="block py-2 hover:text-gray-600 transition-colors"
-										>
-											{t("nav.contact")}
-										</Link>
-									</li>
-									<li className="pt-2 border-t border-black/[.06]">
+									<li className="mt-2 border-t border-zinc-200/60 pt-3 dark:border-zinc-800/60">
 										<LanguageSwitcher />
 									</li>
 								</ul>

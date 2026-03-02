@@ -1,30 +1,16 @@
 [
   {
     "id": "p1",
-    "title": "Minimal Notes",
-    "description": "A minimal note-taking app with markdown support.",
-    "tags": ["Next.js", "TypeScript"],
-    "link": "https://example.com"
+    "title": "LocalFileStorage",
+    "description": "A simple NuGet package for file storage operations",
+    "tags": ["C#", ".NET", "NuGet", "Open Source", "Library", "File Storage"],
+    "link": "https://github.com/rknyryn/LocalFileStorage"
   },
   {
     "id": "p2",
-    "title": "Portfolio Template",
-    "description": "A clean, responsive portfolio template for designers and devs.",
-    "tags": ["Design", "CSS"],
-    "link": "https://example.com"
-  },
-  {
-    "id": "p3",
-    "title": "Portfolio Template",
-    "description": "A clean, responsive portfolio template for designers and devs.",
-    "tags": ["Design", "CSS"],
-    "link": "https://example.com"
-  },
-    {
-    "id": "p4",
-    "title": "Minimal Notes",
-    "description": "A minimal note-taking app with markdown support.",
-    "tags": ["Next.js", "TypeScript"],
-    "link": "https://example.com"
+    "title": "ClipboardManager",
+    "description": "Clipboard manager for macOS with support for text.",
+    "tags": ["Swift", "macOS", "Open Source"],
+    "link": "https://github.com/rknyryn/ClipboardManager"
   }
 ]

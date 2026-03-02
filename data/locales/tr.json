@@ -10,6 +10,7 @@
     },
     "home": {
         "see_projects": "Projeleri Gör",
+        "see_blog": "Blogu Gör",
         "contact": "İletişim",
         "featured_projects": "Öne Çıkan Projeler"
     },
@@ -19,7 +20,7 @@
     },
     "profile": {
         "role": ".Net Core | Yazılım Mühendisi",
-        "tagline": "Güvenilir backend ve frontend araçları geliştiriyorum.",
+        "tagline": "Bazı içerikler paylaşıyorum ve bazı uygulamalar yapıyorum.",
         "bio": "Yazılım mühendisi; full-stack ve tooling projeleri üzerinde çalışıyorum."
     },
     "about": {
@@ -27,5 +28,11 @@
     },
     "project": {
         "view": "Projeyi Görüntüle →"
+    },
+    "blog": {
+        "other_posts": "Diğer Yazılar",
+        "chapter": "Bölüm",
+        "back_to_blog": "Bloga Dön",
+        "min_read": "dk okuma"
     }
 }

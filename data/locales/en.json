@@ -11,7 +11,8 @@
     "home": {
         "see_projects": "See Projects",
         "contact": "Contact",
-        "featured_projects": "Featured Projects"
+        "featured_projects": "Featured Projects",
+        "see_blog": "See Blog"
     },
     "contact": {
         "email_me": "Email me",
@@ -19,7 +20,7 @@
     },
     "profile": {
         "role": ".Net Core | Software Engineer",
-        "tagline": "I build minimal, high-performance web experiences.",
+        "tagline": "I post some content, and I make some apps.",
         "bio": "Software engineer working on full-stack and tooling projects."
     },
     "about": {
@@ -27,5 +28,11 @@
     },
     "project": {
         "view": "View project →"
+    },
+    "blog": {
+        "other_posts": "Other Posts",
+        "chapter": "Chapter",
+        "back_to_blog": "Back to Blog",
+        "min_read": "min read"
     }
 }

@@ -4,6 +4,8 @@ import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
 
+export type Language = "tr" | "en";
+
 export type PostMeta = {
   slug: string;
   title: string;
@@ -11,24 +13,37 @@ export type PostMeta = {
   date: string;
   cover?: string;
   tags?: string[];
+  series?: string;
+  chapter?: number;
+  readingTime: number;
+  lang: Language;
 };
 
-const contentPath = path.join(process.cwd(), "data/demos");
-
-function getFiles(): string[] {
-  if (!fs.existsSync(contentPath)) return [];
-  return fs.readdirSync(contentPath).filter((file) => file.endsWith(".md"));
+function estimateReadingTime(text: string): number {
+  const words = text.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
 }
 
-export function getAllPosts(): PostMeta[] {
-  const files = getFiles();
+function getContentPath(lang: Language): string {
+  return path.join(process.cwd(), "data/blogs", lang);
+}
+
+function getFiles(lang: Language): string[] {
+  const langPath = getContentPath(lang);
+  if (!fs.existsSync(langPath)) return [];
+  return fs.readdirSync(langPath).filter((file) => file.endsWith(".md"));
+}
+
+export function getAllPosts(lang: Language = "tr"): PostMeta[] {
+  const files = getFiles(lang);
+  const langPath = getContentPath(lang);
 
   return files
     .map((file) => {
       const slug = file.replace(".md", "");
-      const filePath = path.join(contentPath, file);
+      const filePath = path.join(langPath, file);
       const fileContent = fs.readFileSync(filePath, "utf-8");
-      const { data } = matter(fileContent);
+      const { data, content } = matter(fileContent);
 
       return {
         slug,
@@ -37,18 +52,27 @@ export function getAllPosts(): PostMeta[] {
         date: data.date,
         cover: data.cover,
         tags: data.tags || [],
+        series: data.series,
+        chapter: data.chapter,
+        readingTime: estimateReadingTime(content),
+        lang,
       };
     })
-    .sort(
-      (a, b) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    .sort((a, b) => {
+      // Aynı serideyse chapter'a göre sırala (küçükten büyüğe)
+      if (a.series && b.series && a.series === b.series) {
+        return (a.chapter ?? 0) - (b.chapter ?? 0);
+      }
+      // Farklı seriler veya serisiz yazılar tarihe göre (eskiden yeniye)
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
 }
 
-export async function getPostBySlug(slug: string) {
+export async function getPostBySlug(slug: string, lang: Language = "tr") {
   if (!slug) return null;
 
-  const filePath = path.join(contentPath, `${slug}.md`);
+  const langPath = getContentPath(lang);
+  const filePath = path.join(langPath, `${slug}.md`);
 
   if (!fs.existsSync(filePath)) return null;
 
@@ -65,6 +89,10 @@ export async function getPostBySlug(slug: string) {
       date: data.date,
       cover: data.cover,
       tags: data.tags || [],
+      series: data.series,
+      chapter: data.chapter,
+      readingTime: estimateReadingTime(content),
+      lang,
     },
     content: processed.toString(),
   };

@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import Section from "../../components/ui/Section";
+import { getAllPosts } from "@/lib/content";
+import LocalizedBlogPage from "@/components/features/blog/LocalizedBlogPage";
 
 export const metadata: Metadata = {
   title: "Blog - Portfolio",
-  description: "Writing and notes.",
+  description: "Blog posts.",
 };
 
 export default function Blog() {
-  return (
-    <Section title="Blog">
-      <p className="text-zinc-600">No posts yet — this is a placeholder for blog entries or notes.</p>
-    </Section>
-  );
+  const enPosts = getAllPosts("en");
+  const trPosts = getAllPosts("tr");
+
+  return <LocalizedBlogPage posts={{ en: enPosts, tr: trPosts }} />;
 }
