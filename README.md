@@ -1,57 +1,67 @@
 # Portfolio
 
-A minimal, high-performance personal portfolio website built with Next.js and Tailwind CSS.
-Fully static, deployable to GitHub Pages, with built-in multi-language support (English & Turkish).
+A modern, minimalist portfolio website built with Next.js 16, TypeScript, and Tailwind CSS.
+Features bilingual support (EN/TR), dark mode, and blog functionality with markdown support.
 
-## Features
+## ✨ Features
 
-✨ **Minimal Design** – Centered layout with clean typography  
-🌐 **Multi-language** – English & Turkish with client-side switching  
-📱 **Responsive** – Mobile-first design, works on all screen sizes  
-⚡ **Static Export** – Zero backend, GitHub Pages compatible  
-🎨 **Dark Mode** – Built-in light/dark mode support  
-📊 **Lightweight** – TypeScript, Tailwind CSS, no bloat  
+- 🎨 **Modern Design** – Glassmorphism, gradient effects, refined typography
+- 🌐 **Bilingual** – English & Turkish with seamless client-side switching
+- 📱 **Fully Responsive** – Optimized for mobile, tablet, and desktop
+- ⚡ **Static Export** – GitHub Pages ready, zero backend
+- 🌙 **Dark Mode** – System preference with smooth transitions
+- 📝 **Blog System** – Markdown-based with reading time & series support
+- 🚀 **Performance** – Optimized builds, minimal JavaScript
 
-## Tech Stack
+## 🛠 Tech Stack
 
-- **Framework:** Next.js 16.1.6 (App Router)
+- **Framework:** Next.js 16.1.6 (App Router, Static Export)
 - **Language:** TypeScript 5
-- **Styling:** Tailwind CSS v4
-- **Internationalization:** Client-side React Context
-- **Deployment:** GitHub Pages (static export)
+- **Styling:** Tailwind CSS v4 + @tailwindcss/typography
+- **Content:** Markdown (gray-matter, remark, remark-html)
+- **i18n:** Custom React Context implementation
+- **Deployment:** GitHub Pages via GitHub Actions
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 portfolio/
-├── app/               # Next.js routes (page.tsx, layout.tsx)
-├── components/        # Reusable UI components
-│   ├── layout/       # Navbar, Footer
-│   ├── i18n/         # Language provider & switcher
-│   ├── features/     # Feature-specific components
-│   └── ui/           # Generic UI components
-├── data/             # JSON data files
-│   ├── profile.json  # Profile, bio, skills, socials
-│   ├── locales/      # Translation files (en.json, tr.json)
-│   └── projects/     # Per-language project data
-├── styles/           # Global CSS & Tailwind config
-└── public/           # Static assets
+├── app/                    # Next.js App Router pages
+│   ├── blog/              # Blog routes (list & [slug])
+│   ├── projects/          # Projects page
+│   ├── layout.tsx         # Root layout with fonts
+│   └── page.tsx           # Home page
+├── components/
+│   ├── features/          # Feature-specific components
+│   │   ├── blog/         # Blog list, detail, cards
+│   │   ├── home/         # Hero, featured projects
+│   │   └── projects/     # Project cards, list
+│   ├── i18n/             # LanguageProvider, LanguageSwitcher
+│   ├── layout/           # Header, Footer
+│   └── ui/               # Generic UI (Section)
+├── data/
+│   ├── blogs/            # Markdown blog posts (en/, tr/)
+│   ├── locales/          # Translation JSON (en.json, tr.json)
+│   ├── projects/         # Project data (projects.en.json, projects.tr.json)
+│   └── profile.json      # Personal info, socials
+├── lib/
+│   └── content.ts        # Markdown processing, blog utilities
+├── public/               # Static assets
+├── styles/
+│   └── globals.css       # Global styles, prose styling
+└── tasks/
+    └── improvements.md   # Future enhancements roadmap
 ```
 
-## Pages
-
-- **Home** – Landing page with hero & featured projects
-- **About** – Bio, skills, and profile info
-- **Projects** – Full project portfolio grid
-- **Contact** – Contact prompt with email CTA
-- **Blog** – Placeholder (ready for content)
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Development
 
 ```bash
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
 ```
 
@@ -60,29 +70,46 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Production Build
 
 ```bash
+# Build static site
 npm run build
-npm run start
+
+# Output will be in /out folder
 ```
 
-Static output is generated in the `/out` folder.
+## 📦 Deployment to GitHub Pages
 
-## Deployment to GitHub Pages
+This project is configured for automatic deployment to GitHub Pages.
 
-1. Build the project:
+### Setup Steps
+
+1. **Create GitHub repository** named `yourusername.github.io`
+
+2. **Enable GitHub Pages**:
+   - Go to repo Settings → Pages
+   - Source: GitHub Actions
+
+3. **Push to GitHub**:
    ```bash
-   npm run build
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin https://github.com/yourusername/yourusername.github.io.git
+   git push -u origin main
    ```
 
-2. Deploy the `/out` folder to your GitHub Pages branch:
-   ```bash
-   # Option 1: Push /out folder directly
-   git subtree push --prefix out origin gh-pages
+4. **Automatic deployment**: GitHub Actions will build and deploy automatically on every push to `main`
 
-   # Option 2: Use GitHub Actions (recommended)
-   # Create .github/workflows/deploy.yml
-   ```
+Your site will be live at: `https://yourusername.github.io`
 
-## Internationalization (i18n)
+### Manual Build & Deploy
+
+```bash
+npm run build
+# Deploy /out folder to your hosting provider
+```
+
+## 🌐 Internationalization (i18n)
 
 ### Supported Languages
 
