@@ -7,211 +7,191 @@ chapter: 1
 tags: [redis, performance, optimization, caching, infrastructure]
 ---
 
+In this section, we examine Redis memory usage and performance characteristics using real test data.
 
-Redis seems free and fast. However, memory costs can add up quickly. The question "I have 8 GB of Redis, how many keys can I store?" is far more complex than simple division.
+> **Tests were performed in a local development environment.** Not a guarantee for production, but it gives serious insight for capacity planning.
 
-## Redis Memory Structure
+⚠️ **Note:** These values are for reference only. Every system has different data structures and usage patterns. Make sure to measure and monitor in your own environment.
 
-Each key-value pair in Redis consumes more than just the data itself:
+## 🎯 Test Summary
 
-```
-Total Memory = Key Memory + Value Memory + Metadata + Internal Overhead
-```
+**We ran a bulk insert scenario with real data and here are the results:**
 
-### 1. Key Memory
+| Metric | Value | Description |
+|--------|-------|-------------|
+| Test Data | 3,603 keys | Each key contains 222 data objects |
+| Total Memory | ~719 MB | Clean Redis: 1.23 MB → After test: 718.92 MB |
+| Memory per Key | ~204 KB | JSON serialized list |
+| Memory per Object | ~941 bytes | Average |
+| Fragmentation | 0% | Jemalloc allocator working |
+| Overhead | %0.14 | Almost all memory is actual data |
 
-```
-Key String "user:1234:profile" 
-= 33 bytes String object + Base Overhead
-≈ 49 bytes (including Redis internal structures)
-```
+**Summary: A list of 222 objects takes up approximately 204 KB.**
 
-Rule: String key = `String Length + 16 bytes overhead`
+## 💾 Memory Calculation
 
-### 2. Value Memory
+Example scenario:
 
-Depends on the data type:
+```csharp
+// Caching a list
+var itemList = new List<ItemDto>(222);
+var cacheKey = "APP:List_638993185531593551";
 
-#### String Value
-```
-"John Smith" 
-= 10 bytes + 49 bytes overhead
-= ~59 bytes total
-```
-
-#### Hash (Object)
-```
-user:1234:profile {
-    name: "John Smith",
-    email: "john@example.com",
-    age: 28
-}
+// Memory Usage:
+// ├── JSON: ~204 KB
+// ├── Redis key metadata: ~290 bytes
+// └── Total: ~204.3 KB
 ```
 
-Estimate:
-- Key: 33 bytes
-- 3 field keys + 3 field values: ~200 bytes
-- Overhead: ~60 bytes
-- **Total: ~350 bytes**
+Simple math:
 
-#### List
-```
-"notifications:user:1234" -> [
-    "New order #1",
-    "Payment confirmed",
-    "Shipped today"
-]
-```
+Single object ≈ 941 bytes
+222 objects ≈ 204 KB
+1,000 keys ≈ 204 MB
 
-Each list element: ~100 bytes
-10-element list: ~1,300 bytes (including overhead)
+Now things get serious.
 
-#### Set
-```
-"user:1234:friends" -> {
-    "456", "789", "1011", ...
-}
-```
+## 🧮 How Many Keys Does 8 GB Redis Hold?
 
-10,000-member set: ~400 KB approximately
+Theoretical calculation:
 
-## Practical Example: E-Commerce System
+8,192 MB / 204 KB ≈ 40,000 keys
 
-### Scenario
+But you don't want 100% utilization in production.
 
-- **Active Users**: 100,000
-- **Per-user cache**: 2 KB (profile + preferences)
-- **Session storage**: 500 bytes × 50,000 active sessions
-- **Product cache**: 10,000 products × 500 bytes
-- **Rate limiting counters**: ~200 KB
+**Safe approach:**
+- Physical RAM: 8 GB
+- Redis MaxMemory: 6 GB (75%)
+- OS and other services: 2 GB
 
-### Calculation
+**In this case, safe capacity is around 30,000 keys.**
 
-```
-User profiles:       100,000 × 2,000 bytes = 200 MB
-Active sessions:     50,000  × 500 bytes = 25 MB
-Product cache:       10,000  × 500 bytes = 5 MB
-Rate limiters:       ~200 KB
-Overhead (10%):      ~23 MB
+> Capacity planning is done by measurement, not estimation.
 
-Total ≈ 253 MB
+## ⏰ TTL is Critical
+
+Redis doesn't do automatic cleanup. If you don't set a TTL, data stays.
+
+```csharp
+_cacheService.Set("List_123", data, expirationInMinutes: 120);
 ```
 
-**Result**: With 8 GB Redis, we can comfortably run 30+ copies of such a system. So what's the problem?
+T=0 → Key created (~204 KB)
+T=2 hours → Key deleted, memory reclaimed
 
-## The Real Issue: Estimation Mistakes
+**TTL is not just a feature, it's a memory management strategy.**
 
-### 1. Memory Leaks
+⚠️ **Warning:** Some clients take TTL in seconds, others in minutes. Always verify your implementation.
 
-Forgetting to set expiration:
+## 🚨 Eviction Policy is Critical
 
-```python
-# ❌ Bad - Never expires
-redis.set("temp:data:1", large_json_string)
+In the test environment, we had noeviction.
 
-# ✅ Good - Deleted after 1 hour
-redis.setex("temp:data:1", 3600, large_json_string)
-```
+That's risky in production.
 
-**Result**: 
-- First month: nothing gets deleted from memory
-- Second month: surprise! Redis out-of-memory error
-
-### 2. Spikes (Sudden Increases)
-
-During flash sale:
+Recommended:
 
 ```
-Normal: 50 MB/hour data addition
-Flash sale: 5 GB/hour data addition (100x increase!)
+allkeys-lru
 ```
 
-**Expected**: 8 MB/hour growth × 24 hours = 192 MB/day  
-**Reality**: Sudden 3-4 GB spike during flash sale
+Least recently used keys are automatically deleted.
 
-### 3. Replication & Persistence Overhead
+This is safer if you can tolerate cache data loss.
+
+## 💽 Persistence Strategy
+
+What happens when Redis restarts?
+
+Options:
+
+RDB only → Fast, low disk usage, small data loss risk
+
+RDB + AOF → Safer but disk and performance cost
+
+Neither → All data lost on restart
+
+**For caching scenarios, RDB alone is usually sufficient.** TTL already aligns with temporary data logic.
+
+## 📈 Without Monitoring, You're Flying Blind
+
+In production, monitor at least these metrics:
+
+- used_memory
+- evicted_keys
+- hit/miss ratio
+- fragmentation ratio
+
+If fragmentation goes above 1.5, consider alerting.
+If evictions increase, review your capacity or TTL strategy.
+
+**Seeing the limit on a graph is different from seeing it in logs.**
+
+## 🎯 Does Optimization Really Work?
+
+### 1️⃣ Compression
+
+**Compressing JSON can save 30–50%.**
+
+204 KB → 120–140 KB
+
+What does that mean?
+
+Instead of 40,000 keys on 8 GB,
+60,000+ keys might be possible.
+
+But CPU cost increases.
+
+**Is memory expensive or is CPU?**
+That decision depends on your system's usage profile.
+
+### 2️⃣ Using Hashes
+
+Instead of many small keys, using Hashes can reduce overhead.
+
+Instead of individual keys:
 
 ```
-Primary instance: 3 GB
-Replica instance: 3 GB (copy)
-AOF Persistence: +1 GB (buffer written to disk)
-
-Net: 7 GB, but "capacity" is only 8 GB!
+HSET APP:OBJ:Group1 field1 "{json1}"
+HSET APP:OBJ:Group1 field2 "{json2}"
 ```
 
-## Realistic Capacity Model
+You can achieve roughly 10–15% savings.
 
-```
-8 GB Redis Instance
-= 8,000 MB
+### 3️⃣ Selective Caching
 
-Allocation:
-  - Primary data: 5,000 MB (62%)
-  - Replica overhead: 2,000 MB (25%)
-  - Safety margin (eviction): 1,000 MB (13%)
-```
+You don't have to cache everything.
 
-**Practical Capacity**: ~5 GB = 5,000,000 × 1 KB key-value pairs
+Cache big, expensive, frequently accessed queries.
+Sometimes getting fast and cheap queries directly from DB makes more sense.
 
-## Optimization Techniques
+**Cache strategy = conscious choice.**
 
-### 1. Compression
+## 📊 Benchmark Summary
 
-```python
-import json
-import zlib
+Memory efficiency: 99.96%
 
-data = {"user_id": 123, "name": "John", ...}
-compressed = zlib.compress(json.dumps(data))
+Fragmentation: 0%
 
-redis.set("user:123", compressed)
-# 1 KB → ~200 bytes (80% savings!)
-```
+Overhead: 0.14%
 
-### 2. Data Type Selection
+Key insertion rate: ~0.5 keys/second (in test conditions)
 
-```
-Bad:     "user:123:name" = "John" (30 bytes key + 4 bytes value)
-Good:    "users" (hash) = {123: "John"} (shared key overhead)
+Overall system health: 9/10
 
-100,000 users: 3 MB savings!
-```
+⚠️ **The only gap:** Eviction policy must be updated in production.
 
-### 3. Aggressive TTL
+## 🎓 Takeaways
 
-```python
-# Refresh session every 5 minutes
-redis.setex("session:abc", 600, user_session)
+- **222 objects ≈ 204 KB**
+- **8 GB Redis ≈ theoretically 40,000 keys**
+- **TTL is mandatory**
+- **Eviction policy must be properly configured in production**
+- **You can't manage capacity without monitoring**
+- **Compression makes a real difference with large objects**
 
-# Evicts after 7 days
-# vs.
-# Never set, accumulates indefinitely
-```
+**Redis is fast.** But it's not unlimited.
 
-## Monitoring
+**"It works" is not enough.**
 
-```bash
-redis-cli info memory
-
-# Output:
-# used_memory: 3.2GB
-# used_memory_peak: 3.8GB
-# memory_fragmentation_ratio: 1.15
-```
-
-- **fragmentation_ratio > 1.3**: Problem! Memory optimization needed
-- **used_memory_peak**: Highest point (watch for sudden spikes)
-
-## Best Practices
-
-1. ✅ **Add TTL to every key** (especially sessions/cache)
-2. ✅ **Monitor memory usage monthly**
-3. ✅ **If you have replicas, think 2x capacity**
-4. ✅ **Watch persistence output buffer**
-5. ✅ **Leave 30% safety margin for spikes**
-
-## Conclusion
-
-The question "How many keys in 8 GB?" is more than technical math. Real growth curves, design mistakes, and operational overhead must be considered.
-
-Good news: if you know and plan ahead, Redis is incredibly cost-effective.
+The real question is: **What's the cost?**

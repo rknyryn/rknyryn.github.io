@@ -7,212 +7,192 @@ chapter: 1
 tags: [redis, performance, optimization, caching, infrastructure]
 ---
 
-# 8 GB Redis Gerçekte Kaç Key Taşır?
+Bu bölümde Redis’in bellek kullanımı ve performans karakteristiklerini, gerçek test verileri üzerinden inceliyoruz.
 
-Redis ücretsiz ve hızlı görünür. Ancak, bellek fiyatlandırması hızla artabilir. "8 GB Redis'im var, kaç key koyabilirim?" sorusunun cevabı, basit bir bölme işleminden çok daha karmaşıktır.
+> **Testler yerel geliştirme ortamında yapıldı.** Production için birebir garanti değil ama kapasite planlaması açısından ciddi bir fikir veriyor.
 
-## Redis Bellek Yapısı
+⚠️ **Not:** Bu değerler referans amaçlıdır. Her sistemin veri yapısı ve kullanım şekli farklıdır. Kendi ortamınızda mutlaka ölçüm ve monitoring yapın.
 
-Redis'te her key-value çifti, yalnızca verinin kendisinden daha fazlasını tüketir:
+## 🎯 Test Özeti
 
-```
-Toplam Bellek = Key Bellek + Value Bellek + Metadata + Internal Overhead
-```
+**Gerçek veriyle bulk insert senaryosu çalıştırdık ve sonuçlar şöyle:**
 
-### 1. Key Bellek
+Metrik	Değer	Açıklama
+Test Verisi	3.603 key	Her key 222 veri objesi içeriyor
+Toplam Bellek	~719 MB	Temiz Redis: 1.23 MB → Test sonrası: 718.92 MB
+Key Başına Bellek	~204 KB	JSON serileştirilmiş liste
+Obje Başına Bellek	~941 byte	Ortalama
+Fragmentasyon	0%	Jemalloc allocator çalışıyor
+Overhead	%0.14	Neredeyse tüm bellek gerçek veri
 
-```
-Key String "user:1234:profile" 
-= 33 bytes String object + Base Overhead
-≈ 49 bytes (Redis internal structure dahil)
-```
+Özetle: **222 objelik bir liste yaklaşık 204 KB yer kaplıyor.**
 
-Kural: String key = `String Length + 16 bytes overhead`
+## 💾 Bellek Hesaplaması
 
-### 2. Value Bellek
+Örnek senaryo:
 
-Farklı veri türlerine göre değişir:
+```csharp
+// Liste cache'leme
+var itemList = new List<ItemDto>(222);
+var cacheKey = "APP:List_638993185531593551";
 
-#### String Value
-```
-"Ahmet Yılmaz" 
-= 12 bytes + 49 bytes overhead
-= ~61 bytes total
-```
-
-#### Hash (Nesne)
-```
-user:1234:profile {
-    name: "Ahmet Yılmaz",
-    email: "ahmet@example.com",
-    age: 28
-}
+// Bellek Kullanımı:
+// ├── JSON: ~204 KB
+// ├── Redis key metadata: ~290 byte
+// └── Toplam: ~204.3 KB
 ```
 
-Tahmini:
-- Key: 33 bytes
-- 3 field key + 3 field value: ~200 bytes
-- Overhead: ~60 bytes
-- **Total: ~350 bytes**
+Basit bir hesap:
 
-#### List
-```
-"notifications:user:1234" -> [
-    "New order #1",
-    "Payment confirmed",
-    "Shipped today"
-]
-```
+Tek obje ≈ 941 byte
+222 obje ≈ 204 KB
+1.000 key ≈ 204 MB
 
-Her list element: ~100 bytes
-10 element list: ~1,300 bytes (overhead dahil)
+Şimdi iş ciddileşiyor.
 
-#### Set
-```
-"user:1234:friends" -> {
-    "456", "789", "1011", ...
-}
-```
+## 🧮 8 GB Redis Kaç Key Taşır?
 
-10.000 member set: ~400 KB civarı
+Teorik hesap:
 
-## Pratik Örnek: E-Ticaret Sistemi
+8.192 MB / 204 KB ≈ 40.000 key
 
-### Senaryo
+Ama production’da %100 doluluk istemezsiniz.
 
-- **Aktif Users**: 100.000
-- **Per-user cache**: 2 KB (profil + tercihler)
-- **Session storage**: 500 bytes × 50.000 aktif session
-- **Product cache**: 10.000 ürün × 500 bytes
-- **Rate limiting counters**: ~200 KB
+**Güvenli yaklaşım:**
+- Fiziksel RAM: 8 GB
+- Redis MaxMemory: 6 GB (%75)
+- OS ve diğer servisler: 2 GB
 
-### Hesap
+**Bu durumda güvenli kapasite yaklaşık 30.000 key civarı olur.**
 
-```
-User profiles:       100.000 × 2.000 bytes = 200 MB
-Active sessions:     50.000  × 500 bytes = 25 MB
-Product cache:       10.000  × 500 bytes = 5 MB
-Rate limiters:       ~200 KB
-Overhead (10%):      ~23 MB
+> Kapasite planlaması tahminle değil, ölçümle yapılır.
 
-Total ≈ 253 MB
+## ⏰ TTL Hayati
+
+Redis otomatik temizlik yapmaz. TTL koymazsanız veri kalır.
+
+```csharp
+_cacheService.Set("List_123", data, expirationInMinutes: 120);
 ```
 
-**Sonuç**: 8 GB Redis'te rahatlıkla ~250 bu tür sistemin 30+ kopyasını çalıştırabiliriz. Öyleyse, mesele nedir?
+T=0 → Key oluştu (~204 KB)
+T=2 saat → Key silindi, bellek geri kazanıldı
 
-## Mesele: Buyut Tahminindeki Yanılgılar
+**TTL sadece bir özellik değil, bellek yönetim stratejisidir.**
 
-### 1. Bellek Sızıntısı (Memory Leaks)
+⚠️ **Dikkat:** Bazı client'lar TTL'yi saniye, bazıları dakika olarak alır. Kullandığınız implementasyonu mutlaka kontrol edin.
 
-Expiration ayarını unutursanız:
+## 🚨 Eviction Policy Kritik
 
-```python
-# ❌ Kötü - Hiç expire olmaz
-redis.set("temp:data:1", large_json_string)
+Test ortamında noeviction vardı.
 
-# ✅ İyi - 1 saat sonra silinir
-redis.setex("temp:data:1", 3600, large_json_string)
-```
+Production’da risklidir.
 
-**Sonuç**: 
-- İlk ayda bellekte hiçbir şey silinmez
-- 2. ayda sürpriz olarak Redis out-of-memory hatası alırsınız
-
-### 2. Spike'lar (Ani Artışlar)
-
-Flash sale sırasında:
+Önerilen:
 
 ```
-Normal: 50 MB/saat veri eklemesi
-Flash sale: 5 GB/saat veri eklemesi (100x artış!)
+allkeys-lru
 ```
 
-**Bekleme**: 8 MB/saat artış × 24 saat = 192 MB/gün  
-**Gerçek**: Flash sale sırasında ani 3-4 GB artış
+En az kullanılan key’ler otomatik silinir.
 
-### 3. Replication &Persistence Overhead
+Cache veri kaybı tolere edilebiliyorsa bu daha güvenlidir.
+
+## 💽 Persistence Stratejisi
+
+Redis restart olursa ne olacak?
+
+Seçenekler:
+
+Sadece RDB → Hızlı, az disk kullanır, küçük veri kaybı riski
+
+RDB + AOF → Daha güvenli ama disk ve performans maliyeti var
+
+Hiçbiri → Restart’ta tüm veri gider
+
+**Cache senaryolarında genellikle sadece RDB yeterlidir.** TTL zaten geçici veri mantığına uyumludur.
+
+## 📈 Monitoring Olmazsa Kör Uçuş
+
+Production’da en az şu metrikleri izleyin:
+
+used_memory
+
+evicted_keys
+
+hit/miss oranı
+
+fragmentasyon oranı
+
+Fragmentasyon 1.5 üstüne çıkıyorsa alarm düşünülmeli.
+Eviction artıyorsa kapasite ya da TTL stratejisi gözden geçirilmeli.
+
+**Sınırı grafikte görmek başka, log'da görmek başkadır.**
+
+## 🎯 Optimizasyon Gerçekten İşe Yarıyor mu?
+### 1️⃣ Compression
+
+**JSON'u sıkıştırarak %30–50 tasarruf mümkün.**
+
+204 KB → 120–140 KB
+
+Bu ne demek?
+
+8 GB’ta 40.000 key yerine
+60.000+ key mümkün olabilir.
+
+Ama CPU maliyeti artar.
+
+**Bellek mi pahalı, CPU mu?**
+Bu karar sistem kullanım profilinize bağlı.
+
+### 2️⃣ Hash Kullanımı
+
+Çok sayıda küçük key yerine Hash kullanmak overhead’i azaltabilir.
+
+Tek tek key yerine:
 
 ```
-Primary instance: 3 GB
-Replica instance: 3 GB (copy)
-AOF Persistence: +1 GB (on diskegama yazılan buffer)
-
-Net: 7 GB, oysa "kapasite" 8 GB!
+HSET APP:OBJ:Group1 field1 "{json1}"
+HSET APP:OBJ:Group1 field2 "{json2}"
 ```
 
-## Gerçekçi Kapasite Modeli
+Yaklaşık %10–15 tasarruf sağlanabilir.
 
-```
-8 GB Redis Instance
-= 8.000 MB
+### 3️⃣ Seçici Cache
 
-Tahsis:
-  - Primary data: 5.000 MB (62%)
-  - Replica overvhead: 2.000 MB (25%)
-  - Safety margin (eviction): 1.000 MB (13%)
-```
+Her veriyi cache’lemek zorunda değilsiniz.
 
-**Pratik Kapasite**: ~5 GB = 5.000.000 × 1 KB key-value
+Büyük, pahalı, sık kullanılan sorguları cache’leyin.
+Hızlı ve ucuz sorguları doğrudan DB’den getirmek bazen daha mantıklıdır.
 
-## İyileştirme Teknikleri
+**Cache stratejisi = bilinçli seçim.**
 
-### 1. Compression
+## 📊 Benchmark Özeti
 
-```python
-import json
-import zlib
+Bellek verimliliği: %99.96
 
-data = {"user_id": 123, "name": "Ahmet", ...}
-compressed = zlib.compress(json.dumps(data))
+Fragmentasyon: %0
 
-redis.set("user:123", compressed)
-# 1 KB → ~200 bytes (80% tasarruf!)
-```
+Overhead: %0.14
 
-### 2. Veri Türü Seçimi
+Key ekleme hızı: ~0.5 key/saniye (test koşullarında)
 
-```
-Kötü:     "user:123:name" = "Ahmet" (30 bytes key + 5 bytes value)
-İyi:      "users" (hash) = {123: "Ahmet"} (paylaşılan key overhead)
+Genel sistem sağlığı: 9/10
 
-100.000 user: 3 MB tasarruf!
-```
+⚠️ **Tek eksik:** Production'da eviction policy mutlaka güncellenmeli.
 
-### 3. TTL (Time To Live) Agresifleştirme
+## 🎓 Çıkarımlar
 
-```python
-# Session'ı her 5 dakika'da refresh et
-redis.setex("session:abc", 600, user_session)
+- **222 obje ≈ 204 KB**
+- **8 GB Redis ≈ teorik 40.000 key**
+- **TTL zorunlu**
+- **Eviction policy production'da doğru ayarlanmalı**
+- **Monitoring olmadan kapasite yönetilmez**
+- **Büyük objelerde compression ciddi fark yaratır**
 
-# 7 günde eviction olur
-# vs.
-# Hiç ayarlamaz, sınırsızca birikir
-```
+**Redis hızlıdır.** Ama sınırsız değildir.
 
-## Monitoring
+**"Çalışıyor" yeterli değildir.**
 
-```bash
-redis-cli info memory
-
-# Output:
-# used_memory: 3.2GB
-# used_memory_peak: 3.8GB
-# memory_fragmentation_ratio: 1.15
-```
-
-- **fragmentation_ratio > 1.3**: Hatalı, memory optimization gerekli
-- **used_memory_peak**: En yüksek nokta (hızlı artış varsa dikkat)
-
-## Best Practices
-
-1. ✅ **Her key'e TTL ekleyin** (özellikle session/cache)
-2. ✅ **Bellek kullanımını aylık monitor edin**
-3. ✅ **Replica'nız varsa x2 kapasite düşünün**
-4. ✅ **Persistence output buffer'ını izlemek**
-5. ✅ **Spike'lara karşı 30% safety margin bırakın**
-
-## Sonuç
-
-"8 GB Redis" sorusu, teknik bir kalkülasyondan çok daha fazlasıdır. Gerçek büyüme eğrileri, tasarım yanılgıları ve operasyonel overhead'ler dikkate alınmalıdır.
-
-İyi haberler: Bilmek ve planlama yaparsanız, Redis son derece maliyet-verimlidir.
+Asıl soru şudur: **Kaça mal oluyor?**

@@ -7,74 +7,157 @@ chapter: 1
 tags: [architecture, design, patterns, fundamentals]
 ---
 
-# Kurallar Kaçmaz
+Gerçek bir projede şuna benzer bir durum yaşadık:
 
-Yazılım mimarisinin temelinde yatan bazı kurallar vardır. Bu kurallar, deneyim kazandıkça halkında ne kadar çok proje yönetsen de, hatta teknoloji ne kadar değişse de hep aynı kalır.
+**Basit bir rezervasyon modülü yazıyoruz.**
 
-## Temel Kurallar
+> - "Ne var ki bunda?" dedik. Tarih al, kaydet, bitti.
 
-### 1. Separation of Concerns (SoC)
-Her bileşen tek bir sorumluluğa sahip olmalıdır. İş mantığı, veri erişimi, sunum mantığı birbirinden ayrılmalıdır.
+Sonra kurallar gelmeye başladı:
+
+– Geçmiş tarih seçilemez.
+– 1 aydan ileri tarih seçilemez.
+– Aynı kullanıcı aynı gün ikinci rezervasyon yapamaz.
+– API’ye gelen istek null / boş olamaz.
+
+**Kod büyümeden önce şunu fark ettik:**
+> Asıl mesele rezervasyon değil.
+> Asıl mesele kuralların nerede yaşayacağı.
+
+**Çünkü yanlış yere koyarsan bir gün biri o kuralı bypass eder.**
+
+Ve production'da sürprizler başlar.
+
+## 🧭 Ayrımı Netleştirelim
+
+**Üç Seviye Vardır:**
+- **Validation** → Veri düzgün mü?
+- **Application** → Sistem içinde çakışma var mı?
+- **Domain** → Bu davranış işin doğasına uygun mu?
+
+> Mimarinin özeti şu:
+> - Validation veri saçmalamasın diye vardır.
+> - Application akışı yönetsin diye vardır.
+> - Domain ise sistemin karakteridir.
+
+## 🧱 Domain – Rezervasyonun Karakteri
+
+**Rezervasyon zamansal olarak geçerli değilse zaten oluşmamalı.**
 
 ```csharp
-// ❌ Kötü - Tüm mantık bir yerde
-public class OrderService {
-    public void ProcessOrder(Order order) {
-        // Validation
-        if (order.Total <= 0) return;
-        
-        // Database
-        database.Save(order);
-        
-        // Email
-        emailService.Send($"Order processed: {order.Id}");
-        
-        // Logging
-        logger.Info($"Order {order.Id} processed");
+public class Reservation
+{
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public DateTime Date { get; private set; }
+
+    private Reservation() { }
+
+    public Reservation(Guid userId, DateTime date, DateTime today)
+    {
+        Id = Guid.NewGuid();
+        UserId = userId;
+        SetDate(date, today);
     }
-}
 
-// ✅ İyi - Sorumluluklar ayrılmış
-public class OrderValidator {
-    public bool IsValid(Order order) => order.Total > 0;
-}
+    public void SetDate(DateTime date, DateTime today)
+    {
+        if (date.Date < today.Date)
+            throw new BusinessRuleException("Geçmiş tarih seçilemez.");
 
-public class OrderRepository {
-    public void Save(Order order) => database.Save(order);
-}
+        if (date.Date > today.Date.AddMonths(1))
+            throw new BusinessRuleException("1 aydan ileri tarih seçilemez.");
 
-public class OrderNotificationService {
-    public void NotifyProcessed(Order order) => emailService.Send(...);
-}
-
-public class OrderService {
-    public void ProcessOrder(Order order) {
-        if (!validator.IsValid(order)) return;
-        repository.Save(order);
-        notificationService.NotifyProcessed(order);
+        Date = date.Date;
     }
 }
 ```
 
-### 2. DRY (Don't Repeat Yourself)
-Aynı kodu birden fazla yerde yazmayın. Kod tekrarı, bakım sorunlarına ve tutarsızlıklara yol açar.
+Burada kritik nokta şu:
+> **Rezervasyon nesnesi kendi bütünlüğünü kendi koruyor.**
 
-### 3. SOLID Prensipleri
-- **S**ingle Responsibility
-- **O**pen/Closed
-- **L**iskov Substitution
-- **I**nterface Segregation
-- **D**ependency Inversion
+Kim çağırırsa çağırsın. API, background job, CLI tool… fark etmez.
 
-## Neden Bu Kadar Önemli?
+## ⚙️ Application – Sistem Çakışmaları
 
-- **Bakım Kolaylığı**: Kod değiştirmek daha kolay ve güvenli
-- **Test Edilebilirlik**: Sınıfları izole etmek testleri kolay kılar
-- **Esneklik**: Yeni gereksinimler karşılamak daha az çabaya mal olur
-- **Takım Çalışması**: Kod temizliği, ekibin verimini arttırır
+**"Aynı kullanıcı aynı gün ikinci rezervasyon yapamaz" kuralı ise DB kontrolü gerektiriyor.**
 
-## Sonuç
+```csharp
+public class ReservationService
+{
+    private readonly IReservationRepository _repository;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-Bu kurallar kısa vadede biraz fazla görünebilir. Ancak, 6 ay sonra o kodu değiştirmen gerektiğinde, ya da bir bug fix yaparken başka bir sistemin kırılmadığını emin olmak istediğinde, bu kuralların değerini anlayacaksın.
+    public ReservationService(
+        IReservationRepository repository,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _repository = repository;
+        _dateTimeProvider = dateTimeProvider;
+    }
 
-Temiz kod yazma alışkanlığı, ne tür bir projeyle çalışırsan çalış, her zaman seni kurtaracaktır.
+    public async Task CreateAsync(Guid userId, DateTime date)
+    {
+        var today = _dateTimeProvider.UtcNow.Date;
+
+        if (await _repository.ExistsForUserOnDateAsync(userId, date.Date))
+            throw new BusinessRuleException("Aynı gün için zaten rezervasyon mevcut.");
+
+        var reservation = new Reservation(userId, date, today);
+
+        await _repository.AddAsync(reservation);
+    }
+}
+```
+
+Application katmanı orkestrasyon yapıyor.
+Akışı yönetiyor.
+**Ama domain'in yerine geçmiyor.**
+
+## 🛡️ Validation – Kapıdaki Güvenlik
+
+```csharp
+public class CreateReservationValidator 
+    : AbstractValidator<CreateReservationRequest>
+{
+    public CreateReservationValidator()
+    {
+        RuleFor(x => x.UserId).NotEmpty();
+        RuleFor(x => x.Date).NotEmpty();
+    }
+}
+```
+
+Bu sadece filtre.
+**Henüz iş mantığı değil.**
+
+## 🎛️ Controller?
+
+**Controller hiçbir şey bilmiyor.**
+- DB bilmiyor.
+- Kural bilmiyor.
+- Sadece servisi çağırıyor.
+
+> **Aptal controller, akıllı domain. 🧠**
+
+## ❓ Asıl Soru
+
+Yarın biri Reservation entity’sini new’leyip Date’i public set edebilse ne olur?
+
+**Tasarım delinmiştir. 🚨**
+
+Ama davranış üzerinden zorunlu kılıyorsan, sistem kendini savunur.
+
+### ✅ İyi Mimarinin Ölçütü
+
+> **Kural atlanamaz olmalı.**
+
+Bu seride gerçek hayatta karşılaştığım problemleri ve uyguladığımız mimari çözümleri paylaşacağım.
+
+**Başta basit olacak.** Sonra concurrency, distributed senaryolar, idempotency, domain event'ler gibi daha karmaşık konulara gireceğiz.
+
+> **Çünkü gerçek mimari, PowerPoint'te değil; edge case'lerde belli olur. 🔍**
+
+---
+
+**Yazılımda en güçlü kod, hata yapmayı zorlaştıran koddur. 💪**

@@ -7,74 +7,156 @@ chapter: 1
 tags: [architecture, design, patterns, fundamentals]
 ---
 
-# Rules Never Change
+We experienced something like this on a real project:
 
-There are certain rules at the foundation of software architecture. These rules remain the same regardless of how many projects you manage as you gain experience, or how much the technology changes.
+> **We're writing a simple reservation module.**
+> - "What's the big deal?" we said. Get a date, save it, done.
 
-## Fundamental Rules
+Then the rules started coming:
 
-### 1. Separation of Concerns (SoC)
-Each component should have a single responsibility. Business logic, data access, and presentation logic should be separated from each other.
+– Can't select past dates.
+– Can't select dates more than 1 month ahead.
+– Same user can't make a second reservation on the same day.
+– API requests can't be null / empty.
+
+**Before the code grew out of control, we realized:**
+> The real problem isn't the reservation.
+> The real problem is where the rules will live.
+
+**Because if you put them in the wrong place, one day someone will bypass that rule.**
+
+And surprises start in production.
+
+## 🧭 Clarifying the Distinction
+
+**There Are Three Levels:**
+- **Validation** → Is the data correct?
+- **Application** → Is there a conflict in the system?
+- **Domain** → Does this behavior align with the nature of the business?
+
+> The essence of architecture is this:
+> - Validation exists so data doesn't become garbage.
+> - Application exists to manage flow.
+> - Domain is the character of the system.
+
+## 🧱 Domain – The Nature of a Reservation
+
+**If a reservation is temporally invalid, it shouldn't be created in the first place.**
 
 ```csharp
-// ❌ Bad - All logic in one place
-public class OrderService {
-    public void ProcessOrder(Order order) {
-        // Validation
-        if (order.Total <= 0) return;
-        
-        // Database
-        database.Save(order);
-        
-        // Email
-        emailService.Send($"Order processed: {order.Id}");
-        
-        // Logging
-        logger.Info($"Order {order.Id} processed");
+public class Reservation
+{
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
+    public DateTime Date { get; private set; }
+
+    private Reservation() { }
+
+    public Reservation(Guid userId, DateTime date, DateTime today)
+    {
+        Id = Guid.NewGuid();
+        UserId = userId;
+        SetDate(date, today);
     }
-}
 
-// ✅ Good - Responsibilities separated
-public class OrderValidator {
-    public bool IsValid(Order order) => order.Total > 0;
-}
+    public void SetDate(DateTime date, DateTime today)
+    {
+        if (date.Date < today.Date)
+            throw new BusinessRuleException("Cannot select past dates.");
 
-public class OrderRepository {
-    public void Save(Order order) => database.Save(order);
-}
+        if (date.Date > today.Date.AddMonths(1))
+            throw new BusinessRuleException("Cannot select dates more than 1 month ahead.");
 
-public class OrderNotificationService {
-    public void NotifyProcessed(Order order) => emailService.Send(...);
-}
-
-public class OrderService {
-    public void ProcessOrder(Order order) {
-        if (!validator.IsValid(order)) return;
-        repository.Save(order);
-        notificationService.NotifyProcessed(order);
+        Date = date.Date;
     }
 }
 ```
 
-### 2. DRY (Don't Repeat Yourself)
-Don't write the same code in multiple places. Code duplication leads to maintenance issues and inconsistencies.
+Here's the critical point:
+> **The Reservation object protects its own integrity.**
 
-### 3. SOLID Principles
-- **S**ingle Responsibility
-- **O**pen/Closed
-- **L**iskov Substitution
-- **I**nterface Segregation
-- **D**ependency Inversion
+No matter who calls it. API, background job, CLI tool… doesn't matter.
 
-## Why These Rules Matter
+## ⚙️ Application – System Conflicts
 
-- **Maintainability**: Code changes are easier and safer
-- **Testability**: Isolating classes makes testing easier
-- **Flexibility**: Meeting new requirements requires less effort
-- **Team Productivity**: Clean code improves team efficiency
+**"Same user can't make a second reservation on the same day" requires database checks.**
 
-## Conclusion
+```csharp
+public class ReservationService
+{
+    private readonly IReservationRepository _repository;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-These rules might seem like overkill in the short term. However, when you need to modify that code 6 months later, or when you want to ensure that a bug fix doesn't break another system, you'll understand the value of these rules.
+    public ReservationService(
+        IReservationRepository repository,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _repository = repository;
+        _dateTimeProvider = dateTimeProvider;
+    }
 
-The habit of writing clean code will always save you, regardless of what type of project you're working on.
+    public async Task CreateAsync(Guid userId, DateTime date)
+    {
+        var today = _dateTimeProvider.UtcNow.Date;
+
+        if (await _repository.ExistsForUserOnDateAsync(userId, date.Date))
+            throw new BusinessRuleException("A reservation already exists for this day.");
+
+        var reservation = new Reservation(userId, date, today);
+
+        await _repository.AddAsync(reservation);
+    }
+}
+```
+
+The Application layer orchestrates.
+It manages flow.
+**But it doesn't replace the domain.**
+
+## 🛡️ Validation – The Guard at the Gate
+
+```csharp
+public class CreateReservationValidator 
+    : AbstractValidator<CreateReservationRequest>
+{
+    public CreateReservationValidator()
+    {
+        RuleFor(x => x.UserId).NotEmpty();
+        RuleFor(x => x.Date).NotEmpty();
+    }
+}
+```
+
+It's just a filter.
+**Not business logic yet.**
+
+## 🎛️ Controller?
+
+**The controller knows nothing.**
+- Doesn't know about the database.
+- Doesn't know about rules.
+- Just calls the service.
+
+> **Dumb controller, smart domain. 🧠**
+
+## ❓ The Real Question
+
+What if someone new's up a Reservation entity and sets Date to public tomorrow?
+
+**The design is compromised. 🚨**
+
+But if you enforce it through behavior, the system defends itself.
+
+### ✅ The Measure of Good Architecture
+
+> **Rules should be impossible to bypass.**
+
+In this series, I'll share the real problems I've encountered and the architectural solutions we applied.
+
+**It'll start simple.** Then we'll get into concurrency, distributed scenarios, idempotency, domain events, and more complex topics.
+
+> **Because real architecture isn't in PowerPoint; it's in edge cases. 🔍**
+
+---
+
+**The strongest code in software is code that makes it hard to make mistakes. 💪**
