@@ -46,7 +46,7 @@ export default function LocalizedPostDetail({ posts }: Props) {
 
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-400 dark:text-zinc-500">
             <time dateTime={post.meta.date}>
-              {new Date(post.meta.date).toLocaleDateString(dateLocale)}
+              {new Date(post.meta.date).toLocaleDateString(dateLocale, { timeZone: "UTC" })}
             </time>
 
             <span className="text-zinc-300 dark:text-zinc-700">·</span>

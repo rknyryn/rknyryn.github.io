@@ -34,5 +34,10 @@
         "chapter": "Bölüm",
         "back_to_blog": "Bloga Dön",
         "min_read": "dk okuma"
+    },
+    "not_found": {
+        "title": "Sayfa bulunamadı",
+        "description": "Aradığınız sayfa mevcut değil veya taşınmış olabilir.",
+        "go_home": "Ana sayfaya dön"
     }
 }

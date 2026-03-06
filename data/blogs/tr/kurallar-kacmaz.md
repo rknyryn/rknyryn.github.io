@@ -11,7 +11,7 @@ Gerçek bir projede şuna benzer bir durum yaşadık:
 
 **Basit bir rezervasyon modülü yazıyoruz.**
 
-> - "Ne var ki bunda?" dedik. Tarih al, kaydet, bitti.
+> "Ne var ki bunda?" dedik. Tarih al, kaydet, bitti.
 
 Sonra kurallar gelmeye başladı:
 

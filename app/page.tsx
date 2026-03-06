@@ -35,9 +35,6 @@ export default async function Home() {
 
   return (
     <div className="relative flex min-h-[calc(100vh-72px)] items-center justify-center overflow-hidden bg-background font-sans">
-      {/* Background radial gradient */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(120,80,200,0.04)_0%,transparent_70%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(120,80,200,0.08)_0%,transparent_70%)]" />
-
       <main className="relative w-full max-w-3xl px-6 py-24">
         <LocalizedHome />
         <FeaturedProjects projects={projects} />

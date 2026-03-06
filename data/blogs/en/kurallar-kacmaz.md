@@ -9,8 +9,9 @@ tags: [architecture, design, patterns, fundamentals]
 
 We experienced something like this on a real project:
 
-> **We're writing a simple reservation module.**
-> - "What's the big deal?" we said. Get a date, save it, done.
+**We're writing a simple reservation module.**
+
+> "What's the big deal?" we said. Get a date, save it, done.
 
 Then the rules started coming:
 

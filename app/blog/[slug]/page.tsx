@@ -20,13 +20,23 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug, "tr");
+  const enPost = await getPostBySlug(slug, "en");
+  const post = enPost ?? (await getPostBySlug(slug, "tr"));
 
   if (!post) return {};
 
+  const description = post.meta.excerpt
+    ? post.meta.excerpt.slice(0, 160)
+    : post.meta.title;
+
   return {
-    title: post.meta.title,
-    description: post.meta.excerpt,
+    title: post.meta.title + " - Blog",
+    description,
+    keywords: post.meta.tags,
+    openGraph: {
+      title: post.meta.title,
+      description,
+    },
   };
 }
 

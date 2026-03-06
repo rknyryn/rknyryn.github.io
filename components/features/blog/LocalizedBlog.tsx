@@ -64,7 +64,7 @@ export default function LocalizedBlog({ posts, locale }: Props) {
                   <div className="flex shrink-0 items-baseline gap-2 text-xs text-zinc-400 dark:text-zinc-500">
                     <span>{post.readingTime} {t("blog.min_read")}</span>
                     <span className="text-zinc-300 dark:text-zinc-700">·</span>
-                    <time>{new Date(post.date).toLocaleDateString(dateLocale)}</time>
+                    <time>{new Date(post.date).toLocaleDateString(dateLocale, { timeZone: "UTC" })}</time>
                   </div>
                 </Link>
               </li>

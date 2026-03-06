@@ -26,11 +26,24 @@ body {
 }
 
 /* Basic focus style */
-a:focus,
-button:focus,
-input:focus {
-  outline: 2px solid rgba(0,0,0,0.06);
-  outline-offset: 2px;
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #6d28d9;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline-color: #a78bfa;
+  }
 }
 
 /* Prose styling for markdown content */

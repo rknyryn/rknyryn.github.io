@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import profile from "@data/profile.json";
 import LocalizedProjectsPage from "@components/features/projects/LocalizedProjectsPage";
 
 export const metadata: Metadata = {
-  title: "Projects - Portfolio",
-  description: "Selected projects.",
+  title: "Projects - " + (profile.name || "Portfolio"),
+  description: "Selected projects by " + (profile.name || "Developer") + ".",
+  openGraph: {
+    title: "Projects - " + (profile.name || "Portfolio"),
+    description: "Selected projects by " + (profile.name || "Developer") + ".",
+  },
 };
 
 async function getProjects() {
