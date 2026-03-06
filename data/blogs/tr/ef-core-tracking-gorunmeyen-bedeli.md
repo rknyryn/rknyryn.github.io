@@ -26,7 +26,7 @@ Kodda tek fark var:
 .AsNoTracking()
 ```
 
-![Benchmark Sonuçları](../../../public/images/blog/ef-core-tracking-gorunmeyen-bedeli/benchmark_result.JPEG)
+![Benchmark Sonuçları](/images/blog/ef-core-tracking-gorunmeyen-bedeli/benchmark_result.JPEG)
 
 ## 📊 Sonuçlar
 
