@@ -9,25 +9,25 @@
         "all_rights": "All rights reserved."
     },
     "home": {
-        "see_projects": "See Projects",
+        "see_projects": "View Projects",
         "contact": "Contact",
         "featured_projects": "Featured Projects",
-        "see_blog": "See Blog"
+        "see_blog": "Read the Blog"
     },
     "contact": {
         "email_me": "Email me",
         "prompt": "Let's get in touch — my email is below."
     },
     "profile": {
-        "role": ".Net Core | Software Engineer",
-        "tagline": "I post some content, and I make some apps.",
+        "role": ".NET Developer | Software Engineering",
+        "tagline": "I build software for real-world problems and share what I learn along the way.",
         "bio": "Software engineer working on full-stack and tooling projects."
     },
     "about": {
         "skills_title": "Skills"
     },
     "project": {
-        "view": "View project →"
+        "view": "View Projects →"
     },
     "blog": {
         "other_posts": "Other Posts",
