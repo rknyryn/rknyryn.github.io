@@ -11,9 +11,9 @@ In this section, we examine Redis memory usage and performance characteristics u
 
 > **Tests were performed in a local development environment.** Not a guarantee for production, but it gives serious insight for capacity planning.
 
-⚠️ **Note:** These values are for reference only. Every system has different data structures and usage patterns. Make sure to measure and monitor in your own environment.
+**Note:** These values are for reference only. Every system has different data structures and usage patterns. Make sure to measure and monitor in your own environment.
 
-## 🎯 Test Summary
+## Test Summary
 
 **We ran a bulk insert scenario with real data and here are the results:**
 
@@ -28,7 +28,7 @@ In this section, we examine Redis memory usage and performance characteristics u
 
 **Summary: A list of 222 objects takes up approximately 204 KB.**
 
-## 💾 Memory Calculation
+## Memory Calculation
 
 Example scenario:
 
@@ -51,7 +51,7 @@ Single object ≈ 941 bytes
 
 Now things get serious.
 
-## 🧮 How Many Keys Does 8 GB Redis Hold?
+## How Many Keys Does 8 GB Redis Hold?
 
 Theoretical calculation:
 
@@ -68,7 +68,7 @@ But you don't want 100% utilization in production.
 
 > Capacity planning is done by measurement, not estimation.
 
-## ⏰ TTL is Critical
+## TTL is Critical
 
 Redis doesn't do automatic cleanup. If you don't set a TTL, data stays.
 
@@ -81,9 +81,9 @@ T=2 hours → Key deleted, memory reclaimed
 
 **TTL is not just a feature, it's a memory management strategy.**
 
-⚠️ **Warning:** Some clients take TTL in seconds, others in minutes. Always verify your implementation.
+**Warning:** Some clients take TTL in seconds, others in minutes. Always verify your implementation.
 
-## 🚨 Eviction Policy is Critical
+## Eviction Policy is Critical
 
 In the test environment, we had noeviction.
 
@@ -99,7 +99,7 @@ Least recently used keys are automatically deleted.
 
 This is safer if you can tolerate cache data loss.
 
-## 💽 Persistence Strategy
+## Persistence Strategy
 
 What happens when Redis restarts?
 
@@ -113,7 +113,7 @@ Neither → All data lost on restart
 
 **For caching scenarios, RDB alone is usually sufficient.** TTL already aligns with temporary data logic.
 
-## 📈 Without Monitoring, You're Flying Blind
+## Without Monitoring, You're Flying Blind
 
 In production, monitor at least these metrics:
 
@@ -127,9 +127,9 @@ If evictions increase, review your capacity or TTL strategy.
 
 **Seeing the limit on a graph is different from seeing it in logs.**
 
-## 🎯 Does Optimization Really Work?
+## Does Optimization Really Work?
 
-### 1️⃣ Compression
+### Compression
 
 **Compressing JSON can save 30–50%.**
 
@@ -145,7 +145,7 @@ But CPU cost increases.
 **Is memory expensive or is CPU?**
 That decision depends on your system's usage profile.
 
-### 2️⃣ Using Hashes
+### Using Hashes
 
 Instead of many small keys, using Hashes can reduce overhead.
 
@@ -158,7 +158,7 @@ HSET APP:OBJ:Group1 field2 "{json2}"
 
 You can achieve roughly 10–15% savings.
 
-### 3️⃣ Selective Caching
+### Selective Caching
 
 You don't have to cache everything.
 
@@ -167,7 +167,7 @@ Sometimes getting fast and cheap queries directly from DB makes more sense.
 
 **Cache strategy = conscious choice.**
 
-## 📊 Benchmark Summary
+## Benchmark Summary
 
 Memory efficiency: 99.96%
 
@@ -179,9 +179,9 @@ Key insertion rate: ~0.5 keys/second (in test conditions)
 
 Overall system health: 9/10
 
-⚠️ **The only gap:** Eviction policy must be updated in production.
+**The only gap:** Eviction policy must be updated in production.
 
-## 🎓 Takeaways
+## Takeaways
 
 - **222 objects ≈ 204 KB**
 - **8 GB Redis ≈ theoretically 40,000 keys**

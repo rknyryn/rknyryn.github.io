@@ -28,7 +28,7 @@ Then the rules started coming:
 
 And surprises start in production.
 
-## 🧭 Clarifying the Distinction
+## Clarifying the Distinction
 
 **There Are Three Levels:**
 - **Validation** → Is the data correct?
@@ -40,7 +40,7 @@ And surprises start in production.
 > - Application exists to manage flow.
 > - Domain is the character of the system.
 
-## 🧱 Domain – The Nature of a Reservation
+## Domain – The Nature of a Reservation
 
 **If a reservation is temporally invalid, it shouldn't be created in the first place.**
 
@@ -78,7 +78,7 @@ Here's the critical point:
 
 No matter who calls it. API, background job, CLI tool… doesn't matter.
 
-## ⚙️ Application – System Conflicts
+## Application – System Conflicts
 
 **"Same user can't make a second reservation on the same day" requires database checks.**
 
@@ -114,7 +114,7 @@ The Application layer orchestrates.
 It manages flow.
 **But it doesn't replace the domain.**
 
-## 🛡️ Validation – The Guard at the Gate
+## Validation – The Guard at the Gate
 
 ```csharp
 public class CreateReservationValidator 
@@ -131,24 +131,24 @@ public class CreateReservationValidator
 It's just a filter.
 **Not business logic yet.**
 
-## 🎛️ Controller?
+## Controller?
 
 **The controller knows nothing.**
 - Doesn't know about the database.
 - Doesn't know about rules.
 - Just calls the service.
 
-> **Dumb controller, smart domain. 🧠**
+> **Dumb controller, smart domain.**
 
-## ❓ The Real Question
+## The Real Question
 
 What if someone new's up a Reservation entity and sets Date to public tomorrow?
 
-**The design is compromised. 🚨**
+**The design is compromised.**
 
 But if you enforce it through behavior, the system defends itself.
 
-### ✅ The Measure of Good Architecture
+### The Measure of Good Architecture
 
 > **Rules should be impossible to bypass.**
 
@@ -156,8 +156,8 @@ In this series, I'll share the real problems I've encountered and the architectu
 
 **It'll start simple.** Then we'll get into concurrency, distributed scenarios, idempotency, domain events, and more complex topics.
 
-> **Because real architecture isn't in PowerPoint; it's in edge cases. 🔍**
+> **Because real architecture isn't in PowerPoint; it's in edge cases.**
 
 ---
 
-**The strongest code in software is code that makes it hard to make mistakes. 💪**
+**The strongest code in software is code that makes it hard to make mistakes.**

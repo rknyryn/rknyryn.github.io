@@ -11,9 +11,9 @@ Bu bölümde Redis’in bellek kullanımı ve performans karakteristiklerini, ge
 
 > **Testler yerel geliştirme ortamında yapıldı.** Production için birebir garanti değil ama kapasite planlaması açısından ciddi bir fikir veriyor.
 
-⚠️ **Not:** Bu değerler referans amaçlıdır. Her sistemin veri yapısı ve kullanım şekli farklıdır. Kendi ortamınızda mutlaka ölçüm ve monitoring yapın.
+**Not:** Bu değerler referans amaçlıdır. Her sistemin veri yapısı ve kullanım şekli farklıdır. Kendi ortamınızda mutlaka ölçüm ve monitoring yapın.
 
-## 🎯 Test Özeti
+## Test Özeti
 
 **Gerçek veriyle bulk insert senaryosu çalıştırdık ve sonuçlar şöyle:**
 
@@ -27,7 +27,7 @@ Overhead	%0.14	Neredeyse tüm bellek gerçek veri
 
 Özetle: **222 objelik bir liste yaklaşık 204 KB yer kaplıyor.**
 
-## 💾 Bellek Hesaplaması
+## Bellek Hesaplaması
 
 Örnek senaryo:
 
@@ -50,7 +50,7 @@ Tek obje ≈ 941 byte
 
 Şimdi iş ciddileşiyor.
 
-## 🧮 8 GB Redis Kaç Key Taşır?
+## 8 GB Redis Kaç Key Taşır?
 
 Teorik hesap:
 
@@ -67,7 +67,7 @@ Ama production’da %100 doluluk istemezsiniz.
 
 > Kapasite planlaması tahminle değil, ölçümle yapılır.
 
-## ⏰ TTL Hayati
+## TTL Hayati
 
 Redis otomatik temizlik yapmaz. TTL koymazsanız veri kalır.
 
@@ -80,9 +80,9 @@ T=2 saat → Key silindi, bellek geri kazanıldı
 
 **TTL sadece bir özellik değil, bellek yönetim stratejisidir.**
 
-⚠️ **Dikkat:** Bazı client'lar TTL'yi saniye, bazıları dakika olarak alır. Kullandığınız implementasyonu mutlaka kontrol edin.
+**Dikkat:** Bazı client'lar TTL'yi saniye, bazıları dakika olarak alır. Kullandığınız implementasyonu mutlaka kontrol edin.
 
-## 🚨 Eviction Policy Kritik
+## Eviction Policy Kritik
 
 Test ortamında noeviction vardı.
 
@@ -98,7 +98,7 @@ En az kullanılan key’ler otomatik silinir.
 
 Cache veri kaybı tolere edilebiliyorsa bu daha güvenlidir.
 
-## 💽 Persistence Stratejisi
+## Persistence Stratejisi
 
 Redis restart olursa ne olacak?
 
@@ -112,7 +112,7 @@ Hiçbiri → Restart’ta tüm veri gider
 
 **Cache senaryolarında genellikle sadece RDB yeterlidir.** TTL zaten geçici veri mantığına uyumludur.
 
-## 📈 Monitoring Olmazsa Kör Uçuş
+## Monitoring Olmazsa Kör Uçuş
 
 Production’da en az şu metrikleri izleyin:
 
@@ -129,8 +129,8 @@ Eviction artıyorsa kapasite ya da TTL stratejisi gözden geçirilmeli.
 
 **Sınırı grafikte görmek başka, log'da görmek başkadır.**
 
-## 🎯 Optimizasyon Gerçekten İşe Yarıyor mu?
-### 1️⃣ Compression
+## Optimizasyon Gerçekten İşe Yarıyor mu?
+### Compression
 
 **JSON'u sıkıştırarak %30–50 tasarruf mümkün.**
 
@@ -146,7 +146,7 @@ Ama CPU maliyeti artar.
 **Bellek mi pahalı, CPU mu?**
 Bu karar sistem kullanım profilinize bağlı.
 
-### 2️⃣ Hash Kullanımı
+### Hash Kullanımı
 
 Çok sayıda küçük key yerine Hash kullanmak overhead’i azaltabilir.
 
@@ -159,7 +159,7 @@ HSET APP:OBJ:Group1 field2 "{json2}"
 
 Yaklaşık %10–15 tasarruf sağlanabilir.
 
-### 3️⃣ Seçici Cache
+### Seçici Cache
 
 Her veriyi cache’lemek zorunda değilsiniz.
 
@@ -168,7 +168,7 @@ Hızlı ve ucuz sorguları doğrudan DB’den getirmek bazen daha mantıklıdır
 
 **Cache stratejisi = bilinçli seçim.**
 
-## 📊 Benchmark Özeti
+## Benchmark Özeti
 
 Bellek verimliliği: %99.96
 
@@ -180,9 +180,9 @@ Key ekleme hızı: ~0.5 key/saniye (test koşullarında)
 
 Genel sistem sağlığı: 9/10
 
-⚠️ **Tek eksik:** Production'da eviction policy mutlaka güncellenmeli.
+**Tek eksik:** Production'da eviction policy mutlaka güncellenmeli.
 
-## 🎓 Çıkarımlar
+## Çıkarımlar
 
 - **222 obje ≈ 204 KB**
 - **8 GB Redis ≈ teorik 40.000 key**

@@ -11,7 +11,7 @@ Bir endpoint düşünelim. Bilgi bankasındaki kayıtları getiriyor. Gayet sır
 
 Her şey çalışıyor. Hiç hata yok. Ama merak ettim ve küçük bir deney yaptım.
 
-## 🧪 Benchmark Kurulumu
+## Benchmark Kurulumu
 
 Aynı sorgunun dört versiyonunu benchmark ettim:
 
@@ -28,7 +28,7 @@ Kodda tek fark var:
 
 ![Benchmark Sonuçları](/images/blog/ef-core-tracking-gorunmeyen-bedeli/benchmark_result.JPEG)
 
-## 📊 Sonuçlar
+## Sonuçlar
 
 **Tracking açık olan sorgular:**
 
@@ -64,7 +64,7 @@ Ve ekipte biri bir gün şu soruyu sorar: **"API bazen neden yavaşlıyor?"**
 
 Çoğu zaman cevap karmaşık algoritmalar değildir. Cevap çoğu zaman küçük ORM davranışlarıdır.
 
-## 💡 Ne Zaman AsNoTracking Kullanmalı?
+## Ne Zaman AsNoTracking Kullanmalı?
 
 EF Core'un tracking mekanizması güçlüdür — entity değişikliklerini takip eder. Ama her sorgunun bu takibe ihtiyacı yoktur.
 

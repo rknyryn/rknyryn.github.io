@@ -11,7 +11,7 @@ Let's think about an endpoint. It fetches records from a knowledge base. A perfe
 
 Everything works. No errors. But I got curious and ran a small experiment.
 
-## 🧪 Benchmark Setup
+## Benchmark Setup
 
 I benchmarked four versions of the same query:
 
@@ -28,7 +28,7 @@ There is only one difference in the code:
 
 ![Benchmark Results](/images/blog/ef-core-tracking-gorunmeyen-bedeli/benchmark_result.JPEG)
 
-## 📊 Results
+## Results
 
 **Queries with tracking enabled:**
 
@@ -46,7 +46,7 @@ NoTracking can appear a few milliseconds slower in some cases. But memory alloca
 
 > **Roughly: 55% less memory consumption.**
 
-## 🔍 Why Does This Matter?
+## Why Does This Matter?
 
 Let's think about this in a real system. This endpoint could be:
 
@@ -64,7 +64,7 @@ And one day someone on the team asks: **"Why is the API sometimes slow?"**
 
 Most of the time the answer isn't complex algorithms. Most of the time the answer is small ORM behaviors.
 
-## 💡 When Should You Use AsNoTracking?
+## When Should You Use AsNoTracking?
 
 EF Core's tracking mechanism is powerful — it tracks entity changes. But not every query actually needs that tracking.
 

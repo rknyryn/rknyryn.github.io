@@ -28,7 +28,7 @@ Sonra kurallar gelmeye başladı:
 
 Ve production'da sürprizler başlar.
 
-## 🧭 Ayrımı Netleştirelim
+## Ayrımı Netleştirelim
 
 **Üç Seviye Vardır:**
 - **Validation** → Veri düzgün mü?
@@ -40,7 +40,7 @@ Ve production'da sürprizler başlar.
 > - Application akışı yönetsin diye vardır.
 > - Domain ise sistemin karakteridir.
 
-## 🧱 Domain – Rezervasyonun Karakteri
+## Domain – Rezervasyonun Karakteri
 
 **Rezervasyon zamansal olarak geçerli değilse zaten oluşmamalı.**
 
@@ -78,7 +78,7 @@ Burada kritik nokta şu:
 
 Kim çağırırsa çağırsın. API, background job, CLI tool… fark etmez.
 
-## ⚙️ Application – Sistem Çakışmaları
+## Application – Sistem Çakışmaları
 
 **"Aynı kullanıcı aynı gün ikinci rezervasyon yapamaz" kuralı ise DB kontrolü gerektiriyor.**
 
@@ -114,7 +114,7 @@ Application katmanı orkestrasyon yapıyor.
 Akışı yönetiyor.
 **Ama domain'in yerine geçmiyor.**
 
-## 🛡️ Validation – Kapıdaki Güvenlik
+## Validation – Kapıdaki Güvenlik
 
 ```csharp
 public class CreateReservationValidator 
@@ -131,24 +131,24 @@ public class CreateReservationValidator
 Bu sadece filtre.
 **Henüz iş mantığı değil.**
 
-## 🎛️ Controller?
+## Controller?
 
 **Controller hiçbir şey bilmiyor.**
 - DB bilmiyor.
 - Kural bilmiyor.
 - Sadece servisi çağırıyor.
 
-> **Aptal controller, akıllı domain. 🧠**
+> **Aptal controller, akıllı domain.**
 
-## ❓ Asıl Soru
+## Asıl Soru
 
 Yarın biri Reservation entity’sini new’leyip Date’i public set edebilse ne olur?
 
-**Tasarım delinmiştir. 🚨**
+**Tasarım delinmiştir.**
 
 Ama davranış üzerinden zorunlu kılıyorsan, sistem kendini savunur.
 
-### ✅ İyi Mimarinin Ölçütü
+### İyi Mimarinin Ölçütü
 
 > **Kural atlanamaz olmalı.**
 
@@ -160,4 +160,4 @@ Bu seride gerçek hayatta karşılaştığım problemleri ve uyguladığımız m
 
 ---
 
-**Yazılımda en güçlü kod, hata yapmayı zorlaştıran koddur. 💪**
+**Yazılımda en güçlü kod, hata yapmayı zorlaştıran koddur.**
